@@ -1,0 +1,120 @@
+/* ── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── App shell ────────────────────────────────────────── */
+html, body {
+  height: 100%;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #e8e8e8;
+  color: #222;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* ── Toolbar ──────────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ccc;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbar-group label {
+  font-size: 12px;
+  color: #555;
+  user-select: none;
+}
+
+.toolbar-group select {
+  font-size: 13px;
+  padding: 3px 6px;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.toolbar-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.toolbar-btn:hover {
+  background: #ddd;
+  border-color: #bbb;
+}
+
+.toolbar-btn.active {
+  background: #cde;
+  border-color: #8ab;
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 24px;
+  background: #ccc;
+  margin: 0 4px;
+}
+
+/* ── Editor area ──────────────────────────────────────── */
+.editor-container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.page {
+  width: 8.5in;
+  min-height: 11in;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  padding: 1in;
+  margin-bottom: 24px;
+}
+
+#editor {
+  width: 100%;
+  min-height: 9in;
+  outline: none;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 12pt;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  caret-color: #000;
+}
+
+#editor:empty::before {
+  content: "Start typing...";
+  color: #aaa;
+  pointer-events: none;
+}

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Write-Tron</title>
+  <link rel="stylesheet" href="css/editor.css">
+</head>
+<body>
+  <div id="app">
+    <header class="toolbar">
+      <div class="toolbar-group">
+        <label for="font-family">Font</label>
+        <select id="font-family">
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="'Courier New', monospace">Courier New</option>
+          <option value="Georgia, serif">Georgia</option>
+          <option value="'Helvetica Neue', Helvetica, sans-serif">Helvetica</option>
+          <option value="'Times New Roman', Times, serif" selected>Times New Roman</option>
+          <option value="Verdana, sans-serif">Verdana</option>
+          <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+          <option value="'Lucida Console', monospace">Lucida Console</option>
+          <option value="Palatino, 'Palatino Linotype', serif">Palatino</option>
+          <option value="Garamond, serif">Garamond</option>
+        </select>
+      </div>
+
+      <div class="toolbar-group">
+        <label for="font-size">Size</label>
+        <select id="font-size">
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12" selected>12</option>
+          <option value="14">14</option>
+          <option value="16">16</option>
+          <option value="18">18</option>
+          <option value="20">20</option>
+          <option value="24">24</option>
+          <option value="28">28</option>
+          <option value="32">32</option>
+          <option value="36">36</option>
+          <option value="48">48</option>
+          <option value="72">72</option>
+        </select>
+      </div>
+
+      <div class="toolbar-separator"></div>
+
+      <div class="toolbar-group">
+        <button id="btn-bold" class="toolbar-btn" title="Bold (Ctrl+B)"><b>B</b></button>
+        <button id="btn-italic" class="toolbar-btn" title="Italic (Ctrl+I)"><i>I</i></button>
+        <button id="btn-underline" class="toolbar-btn" title="Underline (Ctrl+U)"><u>U</u></button>
+      </div>
+
+      <div class="toolbar-separator"></div>
+
+      <div class="toolbar-group">
+        <label for="line-spacing">Spacing</label>
+        <select id="line-spacing">
+          <option value="1">1.0</option>
+          <option value="1.15">1.15</option>
+          <option value="1.5" selected>1.5</option>
+          <option value="2">2.0</option>
+          <option value="2.5">2.5</option>
+          <option value="3">3.0</option>
+        </select>
+      </div>
+    </header>
+
+    <main class="editor-container">
+      <div class="page">
+        <div
+          id="editor"
+          contenteditable="true"
+          spellcheck="true"
+        ></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/editor.js"></script>
+</body>
+</html>

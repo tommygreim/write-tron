@@ -1,0 +1,12 @@
+{
+  "name": "write-tron",
+  "version": "1.0.0",
+  "description": "WYSIWYG word processor — Node.js today, Electron-ready tomorrow",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
