@@ -1,0 +1,546 @@
+import { useState } from 'react';
+import { X, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
+import { Character, Location, Lore, Relationship, SpatialRelation } from '../types';
+
+type Tab = 'premise' | 'characters' | 'locations';
+
+interface Props {
+  lore: Lore;
+  onChange: (lore: Lore) => void;
+  onClose: () => void;
+}
+
+// ─── Tag input ────────────────────────────────────────────────────────────────
+
+function TagInput({
+  tags,
+  onChange,
+  placeholder,
+}: {
+  tags: string[];
+  onChange: (tags: string[]) => void;
+  placeholder?: string;
+}) {
+  const [input, setInput] = useState('');
+
+  const add = () => {
+    const trimmed = input.trim();
+    if (trimmed && !tags.includes(trimmed)) {
+      onChange([...tags, trimmed]);
+    }
+    setInput('');
+  };
+
+  return (
+    <div className="flex flex-wrap gap-1.5 rounded-lg border border-surface-500 bg-surface-800 p-2">
+      {tags.map((tag) => (
+        <span
+          key={tag}
+          className="flex items-center gap-1 rounded bg-accent/20 px-2 py-0.5 text-xs text-accent"
+        >
+          {tag}
+          <button
+            type="button"
+            onClick={() => onChange(tags.filter((t) => t !== tag))}
+            className="hover:text-red-400"
+          >
+            <X size={10} />
+          </button>
+        </span>
+      ))}
+      <input
+        className="min-w-24 flex-1 bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-600"
+        placeholder={placeholder ?? 'Add tag, press Enter'}
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            add();
+          }
+        }}
+        onBlur={add}
+      />
+    </div>
+  );
+}
+
+// ─── Character entry ──────────────────────────────────────────────────────────
+
+function CharacterEntry({
+  char,
+  allChars,
+  onChange,
+  onDelete,
+}: {
+  char: Character;
+  allChars: Character[];
+  onChange: (c: Character) => void;
+  onDelete: () => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+
+  const set = <K extends keyof Character>(key: K, val: Character[K]) =>
+    onChange({ ...char, [key]: val });
+
+  const addRel = () => {
+    const other = allChars.find((c) => c.id !== char.id);
+    if (!other) return;
+    const rel: Relationship = { id: uuidv4(), targetId: other.id, description: '' };
+    set('relationships', [...char.relationships, rel]);
+  };
+
+  const updateRel = (id: string, patch: Partial<Relationship>) => {
+    set(
+      'relationships',
+      char.relationships.map((r) => (r.id === id ? { ...r, ...patch } : r))
+    );
+  };
+
+  const deleteRel = (id: string) =>
+    set(
+      'relationships',
+      char.relationships.filter((r) => r.id !== id)
+    );
+
+  const otherChars = allChars.filter((c) => c.id !== char.id);
+
+  return (
+    <div className="rounded-xl border border-surface-500 bg-surface-700">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between px-4 py-3 text-left"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <span className="font-semibold text-slate-100">
+          {char.name || <span className="italic text-slate-500">Unnamed character</span>}
+        </span>
+        <div className="flex items-center gap-2">
+          <span onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="rounded p-1 text-slate-500 hover:text-red-400 transition-colors">
+            <Trash2 size={14} />
+          </span>
+          {expanded ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="space-y-4 border-t border-surface-500 p-4">
+          {/* Name */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-400">Name</label>
+            <input
+              className="input-field"
+              value={char.name}
+              onChange={(e) => set('name', e.target.value)}
+              placeholder="Character name"
+            />
+          </div>
+
+          {/* Aliases */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-400">
+              Aliases <span className="text-slate-600">(press Enter to add)</span>
+            </label>
+            <TagInput tags={char.aliases} onChange={(v) => set('aliases', v)} placeholder="Add alias…" />
+          </div>
+
+          {/* Personality */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-400">Personality</label>
+            <textarea
+              className="input-field h-24 resize-y"
+              value={char.personality}
+              onChange={(e) => set('personality', e.target.value)}
+              placeholder="Describe the character's personality, mannerisms, speech patterns…"
+            />
+          </div>
+
+          {/* Appearance (booru tags) */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-400">
+              Appearance <span className="text-slate-600">(booru-style tags)</span>
+            </label>
+            <textarea
+              className="input-field h-20 resize-y font-mono text-xs"
+              value={char.appearance}
+              onChange={(e) => set('appearance', e.target.value)}
+              placeholder="blue_eyes, long_hair, tall, scar_on_cheek, …"
+            />
+          </div>
+
+          {/* Relationships */}
+          <div>
+            <label className="mb-2 block text-xs font-medium text-slate-400">Relationships</label>
+            {char.relationships.length === 0 && (
+              <p className="mb-2 text-xs text-slate-600 italic">No relationships defined.</p>
+            )}
+            <div className="space-y-2">
+              {char.relationships.map((rel) => (
+                <div key={rel.id} className="flex items-center gap-2">
+                  <select
+                    className="select-field w-40 shrink-0"
+                    value={rel.targetId}
+                    onChange={(e) => updateRel(rel.id, { targetId: e.target.value })}
+                  >
+                    {otherChars.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name || '(unnamed)'}
+                      </option>
+                    ))}
+                    {otherChars.length === 0 && <option value="">No other characters</option>}
+                  </select>
+                  <input
+                    className="input-field flex-1"
+                    placeholder="Describe relationship…"
+                    value={rel.description}
+                    onChange={(e) => updateRel(rel.id, { description: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => deleteRel(rel.id)}
+                    className="shrink-0 rounded p-1 text-slate-500 hover:text-red-400 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={addRel}
+              disabled={otherChars.length === 0}
+              className="mt-2 flex items-center gap-1 text-xs text-accent hover:text-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <Plus size={12} /> Add relationship
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Location entry ───────────────────────────────────────────────────────────
+
+function LocationEntry({
+  loc,
+  allLocs,
+  onChange,
+  onDelete,
+}: {
+  loc: Location;
+  allLocs: Location[];
+  onChange: (l: Location) => void;
+  onDelete: () => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+
+  const set = <K extends keyof Location>(key: K, val: Location[K]) =>
+    onChange({ ...loc, [key]: val });
+
+  const addRel = () => {
+    const other = allLocs.find((l) => l.id !== loc.id);
+    if (!other) return;
+    const rel: SpatialRelation = { id: uuidv4(), targetId: other.id, description: '' };
+    set('spatialRelations', [...loc.spatialRelations, rel]);
+  };
+
+  const updateRel = (id: string, patch: Partial<SpatialRelation>) => {
+    set(
+      'spatialRelations',
+      loc.spatialRelations.map((r) => (r.id === id ? { ...r, ...patch } : r))
+    );
+  };
+
+  const deleteRel = (id: string) =>
+    set(
+      'spatialRelations',
+      loc.spatialRelations.filter((r) => r.id !== id)
+    );
+
+  const otherLocs = allLocs.filter((l) => l.id !== loc.id);
+
+  return (
+    <div className="rounded-xl border border-surface-500 bg-surface-700">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between px-4 py-3 text-left"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <span className="font-semibold text-slate-100">
+          {loc.name || <span className="italic text-slate-500">Unnamed location</span>}
+        </span>
+        <div className="flex items-center gap-2">
+          <span onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="rounded p-1 text-slate-500 hover:text-red-400 transition-colors">
+            <Trash2 size={14} />
+          </span>
+          {expanded ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="space-y-4 border-t border-surface-500 p-4">
+          {/* Name */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-400">Name</label>
+            <input
+              className="input-field"
+              value={loc.name}
+              onChange={(e) => set('name', e.target.value)}
+              placeholder="Location name"
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-400">Description</label>
+            <textarea
+              className="input-field h-28 resize-y"
+              value={loc.description}
+              onChange={(e) => set('description', e.target.value)}
+              placeholder="Describe this location: atmosphere, notable features, history…"
+            />
+          </div>
+
+          {/* Spatial Relations */}
+          <div>
+            <label className="mb-2 block text-xs font-medium text-slate-400">Spatial relations</label>
+            {loc.spatialRelations.length === 0 && (
+              <p className="mb-2 text-xs text-slate-600 italic">No spatial relations defined.</p>
+            )}
+            <div className="space-y-2">
+              {loc.spatialRelations.map((rel) => (
+                <div key={rel.id} className="flex items-center gap-2">
+                  <select
+                    className="select-field w-40 shrink-0"
+                    value={rel.targetId}
+                    onChange={(e) => updateRel(rel.id, { targetId: e.target.value })}
+                  >
+                    {otherLocs.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {l.name || '(unnamed)'}
+                      </option>
+                    ))}
+                    {otherLocs.length === 0 && <option value="">No other locations</option>}
+                  </select>
+                  <input
+                    className="input-field flex-1"
+                    placeholder="e.g. two days' ride north of…"
+                    value={rel.description}
+                    onChange={(e) => updateRel(rel.id, { description: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => deleteRel(rel.id)}
+                    className="shrink-0 rounded p-1 text-slate-500 hover:text-red-400 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={addRel}
+              disabled={otherLocs.length === 0}
+              className="mt-2 flex items-center gap-1 text-xs text-accent hover:text-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <Plus size={12} /> Add spatial relation
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main panel ───────────────────────────────────────────────────────────────
+
+export default function LorePanel({ lore, onChange, onClose }: Props) {
+  const [tab, setTab] = useState<Tab>('premise');
+
+  const addCharacter = () => {
+    const newChar: Character = {
+      id: uuidv4(),
+      name: '',
+      aliases: [],
+      personality: '',
+      appearance: '',
+      relationships: [],
+    };
+    onChange({ ...lore, characters: [...lore.characters, newChar] });
+  };
+
+  const updateCharacter = (id: string, updated: Character) => {
+    onChange({
+      ...lore,
+      characters: lore.characters.map((c) => (c.id === id ? updated : c)),
+    });
+  };
+
+  const deleteCharacter = (id: string) => {
+    onChange({
+      ...lore,
+      characters: lore.characters
+        .filter((c) => c.id !== id)
+        .map((c) => ({
+          ...c,
+          relationships: c.relationships.filter((r) => r.targetId !== id),
+        })),
+    });
+  };
+
+  const addLocation = () => {
+    const newLoc: Location = {
+      id: uuidv4(),
+      name: '',
+      description: '',
+      spatialRelations: [],
+    };
+    onChange({ ...lore, locations: [...lore.locations, newLoc] });
+  };
+
+  const updateLocation = (id: string, updated: Location) => {
+    onChange({
+      ...lore,
+      locations: lore.locations.map((l) => (l.id === id ? updated : l)),
+    });
+  };
+
+  const deleteLocation = (id: string) => {
+    onChange({
+      ...lore,
+      locations: lore.locations
+        .filter((l) => l.id !== id)
+        .map((l) => ({
+          ...l,
+          spatialRelations: l.spatialRelations.filter((r) => r.targetId !== id),
+        })),
+    });
+  };
+
+  const tabs: { key: Tab; label: string; count?: number }[] = [
+    { key: 'premise', label: 'Premise' },
+    { key: 'characters', label: 'Characters', count: lore.characters.length },
+    { key: 'locations', label: 'Locations', count: lore.locations.length },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-stretch justify-end">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Panel */}
+      <div className="relative z-10 flex h-full w-full max-w-2xl flex-col bg-surface-800 shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-surface-600 px-6 py-4">
+          <h2 className="text-lg font-bold text-slate-100">Lore</h2>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-surface-600 hover:text-slate-100"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-surface-600">
+          {tabs.map(({ key, label, count }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors ${
+                tab === key
+                  ? 'border-b-2 border-accent text-accent'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {label}
+              {count !== undefined && count > 0 && (
+                <span className="rounded-full bg-surface-600 px-1.5 py-0.5 text-xs text-slate-400">
+                  {count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {tab === 'premise' && (
+            <div>
+              <label className="mb-2 block text-xs font-medium text-slate-400">
+                Setting & Premise
+              </label>
+              <textarea
+                className="input-field h-64 resize-y"
+                value={lore.premise}
+                onChange={(e) => onChange({ ...lore, premise: e.target.value })}
+                placeholder="Describe the general setting, world, time period, tone, and central premise of your story…"
+              />
+              <p className="mt-2 text-xs text-slate-600">
+                This will be included when marked relevant to the current passage. Keep it focused
+                on persistent world details rather than plot specifics.
+              </p>
+            </div>
+          )}
+
+          {tab === 'characters' && (
+            <div className="space-y-4">
+              {lore.characters.length === 0 && (
+                <p className="py-8 text-center text-sm text-slate-600 italic">
+                  No characters yet. Add one to get started.
+                </p>
+              )}
+              {lore.characters.map((char) => (
+                <CharacterEntry
+                  key={char.id}
+                  char={char}
+                  allChars={lore.characters}
+                  onChange={(updated) => updateCharacter(char.id, updated)}
+                  onDelete={() => deleteCharacter(char.id)}
+                />
+              ))}
+              <button
+                type="button"
+                onClick={addCharacter}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-surface-500 py-3 text-sm text-slate-500 transition-colors hover:border-accent hover:text-accent"
+              >
+                <Plus size={16} /> Add character
+              </button>
+            </div>
+          )}
+
+          {tab === 'locations' && (
+            <div className="space-y-4">
+              {lore.locations.length === 0 && (
+                <p className="py-8 text-center text-sm text-slate-600 italic">
+                  No locations yet. Add one to get started.
+                </p>
+              )}
+              {lore.locations.map((loc) => (
+                <LocationEntry
+                  key={loc.id}
+                  loc={loc}
+                  allLocs={lore.locations}
+                  onChange={(updated) => updateLocation(loc.id, updated)}
+                  onDelete={() => deleteLocation(loc.id)}
+                />
+              ))}
+              <button
+                type="button"
+                onClick={addLocation}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-surface-500 py-3 text-sm text-slate-500 transition-colors hover:border-accent hover:text-accent"
+              >
+                <Plus size={16} /> Add location
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
