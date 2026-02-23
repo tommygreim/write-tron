@@ -8,6 +8,7 @@ export interface StoryEditorHandle {
   getHTML: () => string;
   getText: () => string;
   appendHTML: (html: string) => void;
+  setContent: (html: string) => void;
   focus: () => void;
 }
 
@@ -52,6 +53,10 @@ const StoryEditor = forwardRef<StoryEditorHandle, Props>(
         if (!editor) return;
         editor.commands.focus('end');
         editor.commands.insertContent(html);
+      },
+      setContent: (html: string) => {
+        if (!editor) return;
+        editor.commands.setContent(html || '<p></p>');
       },
       focus: () => editor?.commands.focus(),
     }));

@@ -84,24 +84,28 @@ function CharacterEntry({
   const set = <K extends keyof Character>(key: K, val: Character[K]) =>
     onChange({ ...char, [key]: val });
 
+  // Guard: AI-returned objects may omit array fields
+  const aliases = char.aliases ?? [];
+  const relationships = char.relationships ?? [];
+
   const addRel = () => {
     const other = allChars.find((c) => c.id !== char.id);
     if (!other) return;
     const rel: Relationship = { id: uuidv4(), targetId: other.id, description: '' };
-    set('relationships', [...char.relationships, rel]);
+    set('relationships', [...relationships, rel]);
   };
 
   const updateRel = (id: string, patch: Partial<Relationship>) => {
     set(
       'relationships',
-      char.relationships.map((r) => (r.id === id ? { ...r, ...patch } : r))
+      relationships.map((r) => (r.id === id ? { ...r, ...patch } : r))
     );
   };
 
   const deleteRel = (id: string) =>
     set(
       'relationships',
-      char.relationships.filter((r) => r.id !== id)
+      relationships.filter((r) => r.id !== id)
     );
 
   const otherChars = allChars.filter((c) => c.id !== char.id);
@@ -143,7 +147,7 @@ function CharacterEntry({
             <label className="mb-1 block text-xs font-medium text-slate-400">
               Aliases <span className="text-slate-600">(press Enter to add)</span>
             </label>
-            <TagInput tags={char.aliases} onChange={(v) => set('aliases', v)} placeholder="Add alias…" />
+            <TagInput tags={aliases} onChange={(v) => set('aliases', v)} placeholder="Add alias…" />
           </div>
 
           {/* Personality */}
@@ -173,11 +177,11 @@ function CharacterEntry({
           {/* Relationships */}
           <div>
             <label className="mb-2 block text-xs font-medium text-slate-400">Relationships</label>
-            {char.relationships.length === 0 && (
+            {relationships.length === 0 && (
               <p className="mb-2 text-xs text-slate-600 italic">No relationships defined.</p>
             )}
             <div className="space-y-2">
-              {char.relationships.map((rel) => (
+              {relationships.map((rel) => (
                 <div key={rel.id} className="flex items-center gap-2">
                   <select
                     className="select-field w-40 shrink-0"
@@ -240,24 +244,27 @@ function LocationEntry({
   const set = <K extends keyof Location>(key: K, val: Location[K]) =>
     onChange({ ...loc, [key]: val });
 
+  // Guard: AI-returned objects may omit array fields
+  const spatialRelations = loc.spatialRelations ?? [];
+
   const addRel = () => {
     const other = allLocs.find((l) => l.id !== loc.id);
     if (!other) return;
     const rel: SpatialRelation = { id: uuidv4(), targetId: other.id, description: '' };
-    set('spatialRelations', [...loc.spatialRelations, rel]);
+    set('spatialRelations', [...spatialRelations, rel]);
   };
 
   const updateRel = (id: string, patch: Partial<SpatialRelation>) => {
     set(
       'spatialRelations',
-      loc.spatialRelations.map((r) => (r.id === id ? { ...r, ...patch } : r))
+      spatialRelations.map((r) => (r.id === id ? { ...r, ...patch } : r))
     );
   };
 
   const deleteRel = (id: string) =>
     set(
       'spatialRelations',
-      loc.spatialRelations.filter((r) => r.id !== id)
+      spatialRelations.filter((r) => r.id !== id)
     );
 
   const otherLocs = allLocs.filter((l) => l.id !== loc.id);
@@ -308,11 +315,11 @@ function LocationEntry({
           {/* Spatial Relations */}
           <div>
             <label className="mb-2 block text-xs font-medium text-slate-400">Spatial relations</label>
-            {loc.spatialRelations.length === 0 && (
+            {spatialRelations.length === 0 && (
               <p className="mb-2 text-xs text-slate-600 italic">No spatial relations defined.</p>
             )}
             <div className="space-y-2">
-              {loc.spatialRelations.map((rel) => (
+              {spatialRelations.map((rel) => (
                 <div key={rel.id} className="flex items-center gap-2">
                   <select
                     className="select-field w-40 shrink-0"
@@ -417,7 +424,7 @@ export default function LorePanel({ lore, onChange, onClose }: Props) {
         .filter((l) => l.id !== id)
         .map((l) => ({
           ...l,
-          spatialRelations: l.spatialRelations.filter((r) => r.targetId !== id),
+          spatialRelations: (l.spatialRelations ?? []).filter((r) => r.targetId !== id),
         })),
     });
   };
