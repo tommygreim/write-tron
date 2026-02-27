@@ -33,6 +33,9 @@ export function normalizeCharacter(raw: Partial<Character> & { id?: string }): C
     relationships: Array.isArray(raw.relationships)
       ? raw.relationships.map(normalizeRelationship)
       : [],
+    portrait: typeof raw.portrait === 'string' ? raw.portrait : null,
+    dialogueColor: typeof raw.dialogueColor === 'string' ? raw.dialogueColor : '',
+    dialogueFont: typeof raw.dialogueFont === 'string' ? raw.dialogueFont : '',
   };
 }
 

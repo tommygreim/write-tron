@@ -11,6 +11,10 @@ export interface Character {
   personality: string;
   appearance: string; // booru-style tags
   relationships: Relationship[];
+  // Presentation
+  portrait: string | null;   // base64 data URL
+  dialogueColor: string;     // CSS color, e.g. '#e2e8f0'
+  dialogueFont: string;      // CSS font-family value, or '' for default
 }
 
 export interface SpatialRelation {

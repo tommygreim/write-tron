@@ -11,9 +11,10 @@ import {
 import StoryEditor, { StoryEditorHandle } from './components/StoryEditor';
 import LorePanel from './components/LorePanel';
 import SettingsPanel from './components/SettingsPanel';
+import CharacterStyles from './components/CharacterStyles';
 import { Lore, Settings, RelevanceResult } from './types';
 import { callOpenRouter, extractJSON } from './api/openrouter';
-import { htmlToPlainText, countWords, getLastNWords, plainTextToHTML } from './utils/text';
+import { htmlToPlainText, countWords, getLastNWords } from './utils/text';
 import {
   buildRelevanceMessages,
   buildStoryMessages,
@@ -21,6 +22,7 @@ import {
 } from './utils/prompts';
 import { normalizeCharacter, normalizeLocation, normalizeLore } from './utils/normalize';
 import { log } from './utils/logger';
+import { parseDialogueMarkers, assignSides, segmentsToHTML, hasDialogueMarkers } from './utils/parseDialogue';
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
@@ -364,9 +366,29 @@ export default function App() {
         setStreamingText(accumulated);
       });
 
-      // Step 3: Insert into editor
+      // Step 3: Parse dialogue markers and insert into editor
       if (accumulated) {
-        editorRef.current?.appendHTML(plainTextToHTML(accumulated));
+        const knownIds = new Set(lore.characters.map((c) => c.id));
+
+        if (hasDialogueMarkers(accumulated)) {
+          const segments = parseDialogueMarkers(accumulated, knownIds);
+          const existingSides = editorRef.current?.getExistingSides() ?? new Map();
+          const sideMap = assignSides(segments, existingSides);
+          const html = segmentsToHTML(segments, sideMap);
+          log.info('Dialogue annotation parsed', {
+            segments: segments.length,
+            dialogueSegments: segments.filter((s) => s.characterId).length,
+            sideMap: Object.fromEntries(sideMap),
+          });
+          editorRef.current?.appendHTML(html);
+        } else {
+          // No markers — insert as plain paragraphs
+          const paras = accumulated
+            .split(/\n{2,}/)
+            .map((p) => `<p>${p.replace(/\n/g, ' ').trim()}</p>`)
+            .join('');
+          editorRef.current?.appendHTML(paras);
+        }
       }
       setStreamingText('');
 
@@ -513,9 +535,12 @@ export default function App() {
         </div>
       </header>
 
+      {/* Inject per-character dialogue CSS */}
+      <CharacterStyles characters={lore.characters} />
+
       {/* ── Editor ── */}
       <div className="relative flex min-h-0 flex-1 flex-col">
-        <StoryEditor ref={editorRef} readOnly={isGenerating} />
+        <StoryEditor ref={editorRef} readOnly={isGenerating} characters={lore.characters} />
 
         {/* Streaming preview */}
         {streamingText && (

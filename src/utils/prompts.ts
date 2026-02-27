@@ -80,6 +80,28 @@ export function buildRelevanceMessages(lore: Lore, recentPassage: string) {
 
 // ─── Main story continuation ──────────────────────────────────────────────────
 
+/**
+ * Build the system instruction for dialogue annotation.
+ * Only included when at least one lore character has an ID.
+ */
+function buildDialogueAnnotationInstruction(characters: Character[]): string {
+  if (characters.length === 0) return '';
+
+  const idList = characters
+    .map((c) => `  - ${c.name || '(unnamed)'}: ${c.id}`)
+    .join('\n');
+
+  return `\n\nDIALOGUE ANNOTATION (required):
+Wrap every character's spoken words in {{char:ID}}...{{/char}} markers using the IDs below.
+Only wrap the actual spoken text (including surrounding quotation marks if present)—leave all narration un-marked.
+Example: She sighed. {{char:abc-123}}"I can't believe it,"{{/char}} she said softly.
+
+Character IDs:
+${idList}
+
+If a speaking character is not in the list above, use {{char:unknown}}...{{/char}}.`;
+}
+
 export function buildStoryMessages(
   lore: Lore,
   relevance: RelevanceResult,
@@ -109,11 +131,12 @@ export function buildStoryMessages(
       ? `## LORE CONTEXT\n\n${sections.join('\n\n---\n\n')}\n\n---\n\n`
       : '';
 
+  const annotationInstruction = buildDialogueAnnotationInstruction(lore.characters);
+
   return [
     {
       role: 'system' as const,
-      content:
-        'You are a creative writing assistant. Continue the story naturally from where it left off. Output only the story continuation—no commentary, no headers, no meta-text.',
+      content: `You are a creative writing assistant. Continue the story naturally from where it left off. Output only the story continuation—no commentary, no headers, no meta-text.${annotationInstruction}`,
     },
     {
       role: 'user' as const,

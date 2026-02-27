@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { X, Plus, Trash2, ChevronDown, ChevronUp, ImagePlus } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { Character, Location, Lore, Relationship, SpatialRelation } from '../types';
 
@@ -68,6 +68,39 @@ function TagInput({
 
 // ─── Character entry ──────────────────────────────────────────────────────────
 
+const PORTRAIT_FONTS = [
+  { label: 'Default (inherit)', value: '' },
+  { label: 'Georgia (serif)', value: 'Georgia, serif' },
+  { label: 'Palatino (serif)', value: "'Palatino Linotype', Palatino, serif" },
+  { label: 'Times New Roman (serif)', value: "'Times New Roman', Times, serif" },
+  { label: 'Arial (sans-serif)', value: 'Arial, sans-serif' },
+  { label: 'Verdana (sans-serif)', value: 'Verdana, Geneva, sans-serif' },
+  { label: 'Courier New (mono)', value: "'Courier New', Courier, monospace" },
+  { label: 'Trebuchet (sans-serif)', value: "'Trebuchet MS', sans-serif" },
+  { label: 'Comic Sans (casual)', value: "'Comic Sans MS', cursive" },
+];
+
+/** Resize an uploaded image to fit within maxW×maxH while keeping aspect ratio. */
+function resizeImage(file: File, maxW: number, maxH: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
 function CharacterEntry({
   char,
   allChars,
@@ -80,9 +113,23 @@ function CharacterEntry({
   onDelete: () => void;
 }) {
   const [expanded, setExpanded] = useState(true);
+  const portraitInputRef = useRef<HTMLInputElement>(null);
 
   const set = <K extends keyof Character>(key: K, val: Character[K]) =>
     onChange({ ...char, [key]: val });
+
+  const handlePortraitUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      // Resize to max 416×608 (half of 832×1216) to keep localStorage manageable
+      const dataUrl = await resizeImage(file, 416, 608);
+      set('portrait', dataUrl);
+    } catch {
+      // ignore
+    }
+    e.target.value = '';
+  };
 
   // Guard: AI-returned objects may omit array fields
   const aliases = char.aliases ?? [];
@@ -172,6 +219,116 @@ function CharacterEntry({
               onChange={(e) => set('appearance', e.target.value)}
               placeholder="blue_eyes, long_hair, tall, scar_on_cheek, …"
             />
+          </div>
+
+          {/* Portrait */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-400">
+              Portrait{' '}
+              <span className="text-slate-600">(2:3 aspect ratio, shown beside dialogue)</span>
+            </label>
+            <input
+              ref={portraitInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePortraitUpload}
+            />
+            {char.portrait ? (
+              <div className="flex items-start gap-3">
+                <img
+                  src={char.portrait}
+                  alt="Portrait preview"
+                  className="rounded-lg object-cover shadow"
+                  style={{ width: 72, height: 105 }}
+                />
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => portraitInputRef.current?.click()}
+                    className="rounded-lg border border-surface-500 px-3 py-1.5 text-xs text-slate-400 hover:border-accent hover:text-accent transition-colors"
+                  >
+                    Replace
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => set('portrait', null)}
+                    className="rounded-lg border border-surface-500 px-3 py-1.5 text-xs text-slate-400 hover:border-red-500 hover:text-red-400 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => portraitInputRef.current?.click()}
+                className="flex items-center gap-2 rounded-lg border border-dashed border-surface-500 px-4 py-3 text-sm text-slate-500 transition-colors hover:border-accent hover:text-accent"
+              >
+                <ImagePlus size={16} /> Upload portrait
+              </button>
+            )}
+          </div>
+
+          {/* Dialogue styling */}
+          <div>
+            <label className="mb-2 block text-xs font-medium text-slate-400">
+              Dialogue styling
+            </label>
+            <div className="flex items-center gap-3">
+              {/* Color swatch */}
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-slate-500">Color</label>
+                <div className="relative h-8 w-8 overflow-hidden rounded border border-surface-500">
+                  <input
+                    type="color"
+                    value={char.dialogueColor || '#e2e8f0'}
+                    onChange={(e) => set('dialogueColor', e.target.value)}
+                    className="absolute -inset-1 h-12 w-12 cursor-pointer border-0 p-0 opacity-100"
+                    title="Dialogue text colour"
+                  />
+                </div>
+                {char.dialogueColor && (
+                  <button
+                    type="button"
+                    onClick={() => set('dialogueColor', '')}
+                    className="text-xs text-slate-600 hover:text-slate-400 transition-colors"
+                    title="Clear colour"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+
+              {/* Font selector */}
+              <div className="flex flex-1 items-center gap-2">
+                <label className="shrink-0 text-xs text-slate-500">Font</label>
+                <select
+                  className="select-field flex-1 text-xs"
+                  value={char.dialogueFont || ''}
+                  onChange={(e) => set('dialogueFont', e.target.value)}
+                >
+                  {PORTRAIT_FONTS.map((f) => (
+                    <option key={f.value} value={f.value}>
+                      {f.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Live preview */}
+            {(char.dialogueColor || char.dialogueFont) && (
+              <p
+                className="mt-2 rounded bg-surface-800 px-3 py-2 text-sm"
+                style={{
+                  color: char.dialogueColor || undefined,
+                  fontFamily: char.dialogueFont || undefined,
+                }}
+              >
+                "This is how {char.name || 'this character'}'s dialogue will look."
+              </p>
+            )}
           </div>
 
           {/* Relationships */}
@@ -377,6 +534,9 @@ export default function LorePanel({ lore, onChange, onClose }: Props) {
       personality: '',
       appearance: '',
       relationships: [],
+      portrait: null,
+      dialogueColor: '',
+      dialogueFont: '',
     };
     onChange({ ...lore, characters: [...lore.characters, newChar] });
   };
