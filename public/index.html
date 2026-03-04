@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WriteTron</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Toolbar -->
+  <div id="toolbar">
+    <div class="toolbar-group">
+      <select id="font-family" title="Font Family">
+        <option value="Georgia">Georgia</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Arial">Arial</option>
+        <option value="Helvetica">Helvetica</option>
+        <option value="Verdana">Verdana</option>
+        <option value="Courier New">Courier New</option>
+        <option value="Garamond">Garamond</option>
+        <option value="Palatino Linotype">Palatino</option>
+        <option value="Trebuchet MS">Trebuchet MS</option>
+        <option value="Cambria">Cambria</option>
+      </select>
+      <select id="font-size" title="Font Size">
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12" selected>12</option>
+        <option value="14">14</option>
+        <option value="16">16</option>
+        <option value="18">18</option>
+        <option value="20">20</option>
+        <option value="24">24</option>
+        <option value="28">28</option>
+        <option value="32">32</option>
+        <option value="36">36</option>
+        <option value="48">48</option>
+        <option value="72">72</option>
+      </select>
+    </div>
+
+    <div class="toolbar-separator"></div>
+
+    <div class="toolbar-group">
+      <button id="btn-bold" class="toolbar-btn" title="Bold (Ctrl+B)"><b>B</b></button>
+      <button id="btn-italic" class="toolbar-btn" title="Italic (Ctrl+I)"><i>I</i></button>
+      <button id="btn-strikethrough" class="toolbar-btn" title="Strikethrough (Ctrl+D)"><s>S</s></button>
+    </div>
+
+    <div class="toolbar-separator"></div>
+
+    <div class="toolbar-group">
+      <button id="btn-heading" class="toolbar-btn" title="Toggle Section Header (Ctrl+H)">H</button>
+      <button id="btn-exclude-wc" class="toolbar-btn" title="Exclude Section from Word Count" style="font-size:11px;">WC&#x336;</button>
+    </div>
+
+    <div class="toolbar-separator"></div>
+
+    <div class="toolbar-group">
+      <button id="btn-indent" class="toolbar-btn" title="Increase Indent (Tab)">&#8677;</button>
+      <button id="btn-outdent" class="toolbar-btn" title="Decrease Indent (Shift+Tab)">&#8676;</button>
+      <button id="btn-first-line-indent" class="toolbar-btn toolbar-btn-narrow" title="Toggle First-Line Indent">&#182;&#8677;</button>
+    </div>
+
+    <div class="toolbar-separator"></div>
+
+    <div class="toolbar-group">
+      <label class="toolbar-label" title="Line spacing within a paragraph">Line:</label>
+      <select id="line-spacing" title="Line Spacing">
+        <option value="1">1.0</option>
+        <option value="1.15" selected>1.15</option>
+        <option value="1.5">1.5</option>
+        <option value="2">2.0</option>
+        <option value="2.5">2.5</option>
+        <option value="3">3.0</option>
+      </select>
+      <label class="toolbar-label" title="Extra spacing after a paragraph (Enter)">Para:</label>
+      <select id="paragraph-spacing" title="Paragraph Spacing (after Enter)">
+        <option value="0">0 pt</option>
+        <option value="6">6 pt</option>
+        <option value="8" selected>8 pt</option>
+        <option value="12">12 pt</option>
+        <option value="18">18 pt</option>
+        <option value="24">24 pt</option>
+      </select>
+    </div>
+
+    <div class="toolbar-separator"></div>
+
+    <div class="toolbar-group">
+      <label class="toolbar-label">Width:</label>
+      <input type="range" id="page-width-slider" min="30" max="100" value="60" title="Page width as % of screen">
+      <span id="page-width-label">60%</span>
+    </div>
+
+    <div class="toolbar-separator"></div>
+
+    <div class="toolbar-group">
+      <button id="btn-toggle-sidebar" class="toolbar-btn" title="Toggle Sidebar">&#9776;</button>
+      <button id="btn-toggle-stats" class="toolbar-btn" title="Toggle Word Count Stats">&#35;</button>
+    </div>
+  </div>
+
+  <!-- Main layout -->
+  <div id="main-container">
+    <!-- Sidebar for section headers -->
+    <div id="sidebar">
+      <div id="sidebar-header">Sections</div>
+      <div id="sidebar-list"></div>
+    </div>
+
+    <!-- Editor area -->
+    <div id="editor-wrapper">
+      <div id="editor-scroll">
+        <div id="page" contenteditable="true" spellcheck="true">
+          <div class="paragraph" data-paragraph-id="p-1"><br></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div id="status-bar">
+    <div id="status-left"></div>
+    <div id="status-right">
+      <span id="word-count-display">0 words</span>
+      <span id="daily-stats-display">+0 / -0 today</span>
+    </div>
+  </div>
+
+  <script src="editor.js"></script>
+</body>
+</html>
