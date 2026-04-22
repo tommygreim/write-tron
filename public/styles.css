@@ -180,15 +180,16 @@ html, body {
   flex: 1;
   display: flex;
   justify-content: center;
-  overflow: hidden;
+  overflow-y: auto;
   background: #e8e8e8;
 }
 
 #editor-scroll {
   width: var(--page-width, 60%);
-  overflow-y: auto;
+  flex-shrink: 0;
   padding: 40px 0 120px;
   transition: width 0.15s;
+  height: fit-content;
 }
 
 #page {
@@ -221,14 +222,8 @@ html, body {
   text-indent: 0.5in;
 }
 
-/* Section headings */
-.paragraph.section-heading {
-  font-size: 1.4em;
-  font-weight: bold;
-  margin-top: 12pt;
-  margin-bottom: 6pt;
-  color: #1a1a2e;
-}
+/* Section headings — no visual change, purely structural/functional */
+.paragraph.section-heading {}
 
 /* Exclude from word count visual */
 .paragraph.exclude-wc {
@@ -271,23 +266,23 @@ html, body {
 }
 
 /* ---- Scrollbar styling ---- */
-#editor-scroll::-webkit-scrollbar,
+#editor-wrapper::-webkit-scrollbar,
 #sidebar-list::-webkit-scrollbar {
   width: 8px;
 }
 
-#editor-scroll::-webkit-scrollbar-track,
+#editor-wrapper::-webkit-scrollbar-track,
 #sidebar-list::-webkit-scrollbar-track {
   background: transparent;
 }
 
-#editor-scroll::-webkit-scrollbar-thumb,
+#editor-wrapper::-webkit-scrollbar-thumb,
 #sidebar-list::-webkit-scrollbar-thumb {
   background: #bbb;
   border-radius: 4px;
 }
 
-#editor-scroll::-webkit-scrollbar-thumb:hover,
+#editor-wrapper::-webkit-scrollbar-thumb:hover,
 #sidebar-list::-webkit-scrollbar-thumb:hover {
   background: #999;
 }

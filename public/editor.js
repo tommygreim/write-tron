@@ -37,6 +37,9 @@
   // Daily word tracking
   const STORAGE_KEY_SNAPSHOT = 'writetron_daily_snapshot';
   const STORAGE_KEY_SNAPSHOT_DATE = 'writetron_snapshot_date';
+  const STORAGE_KEY_ADDED = 'writetron_added_today';
+  const STORAGE_KEY_REMOVED = 'writetron_removed_today';
+  let lastKnownWordCount = null;
 
   // ---- Utilities ----
   function generateParagraphId() {
@@ -312,18 +315,17 @@
       }
       return;
     }
-    // Tab = Indent, Shift+Tab = Outdent
+    // Tab = first-line indent, Shift+Tab = remove first-line indent
     if (e.key === 'Tab') {
       e.preventDefault();
       const para = getActiveParagraph();
       if (!para) return;
       if (e.shiftKey) {
-        const level = getIndentLevel(para);
-        if (level > 0) setIndentLevel(para, level - 1);
+        para.classList.remove('first-line-indent');
       } else {
-        const level = getIndentLevel(para);
-        if (level < 5) setIndentLevel(para, level + 1);
+        para.classList.add('first-line-indent');
       }
+      updateToolbarState();
       return;
     }
     // Enter = create new paragraph
@@ -479,28 +481,32 @@
 
   function updateDailyStats(currentCount) {
     const today = getToday();
-    let snapshotDate = localStorage.getItem(STORAGE_KEY_SNAPSHOT_DATE);
-    let snapshotCount = parseInt(localStorage.getItem(STORAGE_KEY_SNAPSHOT) || '0', 10);
+    const snapshotDate = localStorage.getItem(STORAGE_KEY_SNAPSHOT_DATE);
 
-    // If no snapshot or it's from before today, set today's snapshot
+    // New day: reset cumulative tallies
     if (!snapshotDate || snapshotDate < today) {
-      // The snapshot becomes yesterday's final count
-      // If there's an existing snapshot, keep it as the baseline
-      if (snapshotDate && snapshotDate < today) {
-        // snapshotCount already represents yesterday's final word count
-        localStorage.setItem(STORAGE_KEY_SNAPSHOT, snapshotCount.toString());
-      } else {
-        // First ever use — baseline is 0
-        snapshotCount = 0;
-        localStorage.setItem(STORAGE_KEY_SNAPSHOT, '0');
-      }
       localStorage.setItem(STORAGE_KEY_SNAPSHOT_DATE, today);
+      localStorage.setItem(STORAGE_KEY_SNAPSHOT, currentCount.toString());
+      localStorage.setItem(STORAGE_KEY_ADDED, '0');
+      localStorage.setItem(STORAGE_KEY_REMOVED, '0');
+      lastKnownWordCount = currentCount;
     }
 
-    const diff = currentCount - snapshotCount;
-    const added = diff > 0 ? diff : 0;
-    const removed = diff < 0 ? Math.abs(diff) : 0;
+    // Accumulate deltas from each change
+    if (lastKnownWordCount !== null && currentCount !== lastKnownWordCount) {
+      const delta = currentCount - lastKnownWordCount;
+      if (delta > 0) {
+        const prev = parseInt(localStorage.getItem(STORAGE_KEY_ADDED) || '0', 10);
+        localStorage.setItem(STORAGE_KEY_ADDED, (prev + delta).toString());
+      } else {
+        const prev = parseInt(localStorage.getItem(STORAGE_KEY_REMOVED) || '0', 10);
+        localStorage.setItem(STORAGE_KEY_REMOVED, (prev + Math.abs(delta)).toString());
+      }
+    }
+    lastKnownWordCount = currentCount;
 
+    const added = parseInt(localStorage.getItem(STORAGE_KEY_ADDED) || '0', 10);
+    const removed = parseInt(localStorage.getItem(STORAGE_KEY_REMOVED) || '0', 10);
     dailyStatsDisplay.textContent = '+' + added.toLocaleString() + ' / -' + removed.toLocaleString() + ' today';
   }
 
@@ -737,6 +743,9 @@
   autoLoad();
   ensureStructure();
   updateSidebar();
+  // Seed lastKnownWordCount from storage before first updateWordCount call
+  // so loading the document doesn't register as new words written today.
+  lastKnownWordCount = getWordCount();
   updateWordCount();
   updateToolbarState();
   page.focus();
