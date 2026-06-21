@@ -1,4 +1,26 @@
-/* Reset & base */
+/* ---- Design tokens ---- */
+:root {
+  --bg:               #111318;
+  --chrome:           #1a1b22;
+  --chrome-hover:     #21232c;
+  --page-bg:          #1d1f28;
+  --border:           #292b38;
+  --text:             #c4c9d8;
+  --text-dim:         #5c6175;
+  --text-muted:       #3d4154;
+  --accent:           #5b8ef0;
+  --accent-dim:       rgba(91, 142, 240, 0.14);
+  --accent-glow:      rgba(91, 142, 240, 0.28);
+  --btn-bg:           #22242e;
+  --btn-hover:        #2b2d3c;
+  --btn-border:       #303240;
+  --btn-active-bg:    rgba(91, 142, 240, 0.16);
+  --btn-active-border:#5b8ef0;
+  --dirty-color:      #e8983a;
+  --paragraph-spacing: 8pt;
+}
+
+/* ---- Reset ---- */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -8,23 +30,31 @@
 html, body {
   height: 100%;
   overflow: hidden;
-  font-family: Arial, sans-serif;
-  background: #e8e8e8;
-  color: #222;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
   font-size: 13px;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
 }
 
 /* ---- Toolbar ---- */
 #toolbar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px;
-  padding: 6px 12px;
-  background: #f5f5f5;
-  border-bottom: 1px solid #ccc;
+  padding: 6px 14px;
+  background: var(--chrome);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
   user-select: none;
   z-index: 100;
+  overflow: hidden;
 }
 
 .toolbar-group {
@@ -35,80 +65,110 @@ html, body {
 
 .toolbar-separator {
   width: 1px;
-  height: 24px;
-  background: #ccc;
-  margin: 0 4px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 5px;
+  flex-shrink: 0;
 }
 
 .toolbar-btn {
   min-width: 30px;
-  height: 28px;
-  border: 1px solid #bbb;
-  border-radius: 3px;
-  background: #fff;
+  height: 27px;
+  border: 1px solid var(--btn-border);
+  border-radius: 5px;
+  background: var(--btn-bg);
+  color: var(--text);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
+  font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 6px;
+  padding: 0 8px;
+  transition: background 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease, color 0.1s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .toolbar-btn:hover {
-  background: #e2e2e2;
+  background: var(--btn-hover);
+  border-color: #3e4055;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.35);
+}
+
+.toolbar-btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .toolbar-btn.active {
-  background: #cde;
-  border-color: #89a;
+  background: var(--btn-active-bg);
+  border-color: var(--btn-active-border);
+  color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow), inset 0 0 8px rgba(91, 142, 240, 0.06);
 }
 
 .toolbar-btn-narrow {
   font-size: 11px;
 }
 
+/* File operation buttons — visually distinguished */
+.file-ops .toolbar-btn {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0 11px;
+  letter-spacing: 0.02em;
+}
+
 .toolbar-label {
   font-size: 11px;
-  color: #555;
+  color: var(--text-dim);
   margin-right: 2px;
+  flex-shrink: 0;
 }
 
 #toolbar select {
-  height: 28px;
-  border: 1px solid #bbb;
-  border-radius: 3px;
-  background: #fff;
+  height: 27px;
+  border: 1px solid var(--btn-border);
+  border-radius: 5px;
+  background: var(--btn-bg);
+  color: var(--text);
   font-size: 12px;
-  padding: 0 4px;
+  font-family: inherit;
+  padding: 0 6px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.1s ease;
+  flex-shrink: 0;
 }
 
-#font-family {
-  width: 130px;
-}
+#toolbar select:hover  { border-color: #3e4055; }
+#toolbar select:focus  { border-color: var(--accent); }
 
-#font-size {
-  width: 55px;
-}
-
-#line-spacing, #paragraph-spacing {
-  width: 58px;
-}
+#font-family           { width: 128px; }
+#font-size             { width: 54px; }
+#line-spacing,
+#paragraph-spacing     { width: 60px; }
 
 #page-width-slider {
-  width: 80px;
+  width: 78px;
   cursor: pointer;
+  accent-color: var(--accent);
+  flex-shrink: 0;
 }
 
 #page-width-label {
   font-size: 11px;
-  color: #555;
-  min-width: 30px;
+  color: var(--text-dim);
+  min-width: 32px;
+  flex-shrink: 0;
 }
 
 /* ---- Main layout ---- */
 #main-container {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  height: calc(100vh - 42px - 28px); /* toolbar + status bar */
   overflow: hidden;
 }
 
@@ -116,64 +176,63 @@ html, body {
 #sidebar {
   width: 220px;
   min-width: 220px;
-  background: #f0f0f0;
-  border-right: 1px solid #ccc;
+  background: var(--chrome);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: width 0.15s, min-width 0.15s;
+  transition: width 0.18s ease, min-width 0.18s ease;
 }
 
 #sidebar.hidden {
   width: 0;
   min-width: 0;
   border-right: none;
-  overflow: hidden;
 }
 
 #sidebar-header {
-  padding: 10px 12px 8px;
-  font-weight: bold;
-  font-size: 13px;
-  color: #444;
-  border-bottom: 1px solid #ddd;
+  padding: 10px 14px 9px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
 #sidebar-list {
   flex: 1;
   overflow-y: auto;
-  padding: 6px 0;
+  padding: 5px 0;
 }
 
 .sidebar-item {
-  padding: 6px 12px;
+  padding: 7px 14px;
   cursor: pointer;
   font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #333;
-  border-left: 3px solid transparent;
+  color: var(--text);
+  border-left: 2px solid transparent;
+  transition: background 0.1s ease, border-color 0.1s ease, color 0.1s ease;
 }
 
 .sidebar-item:hover {
-  background: #e0e6ed;
+  background: var(--chrome-hover);
+  border-left-color: var(--text-muted);
 }
 
 .sidebar-item.active {
-  background: #d6e2f0;
-  border-left-color: #4a7cbf;
+  background: var(--accent-dim);
+  border-left-color: var(--accent);
+  color: #c8d8ff;
   font-weight: 600;
 }
 
-.sidebar-item.depth-1 {
-  padding-left: 12px;
-}
-.sidebar-item.depth-2 {
-  padding-left: 24px;
-  font-size: 11px;
-}
+.sidebar-item.depth-1 { padding-left: 14px; }
+.sidebar-item.depth-2 { padding-left: 26px; font-size: 11px; }
 
 /* ---- Editor area ---- */
 #editor-wrapper {
@@ -181,53 +240,58 @@ html, body {
   display: flex;
   justify-content: center;
   overflow-y: auto;
-  background: #e8e8e8;
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(91, 142, 240, 0.05) 0%, transparent 100%);
 }
 
 #editor-scroll {
-  width: var(--page-width, 60%);
+  width: 60%;
   flex-shrink: 0;
-  padding: 40px 0 120px;
-  transition: width 0.15s;
+  padding: 52px 0 140px;
+  transition: width 0.15s ease;
   height: fit-content;
 }
 
 #page {
-  background: #fff;
-  min-height: 1000px;
-  padding: 60px 72px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.15);
+  background: var(--page-bg);
+  min-height: 1050px;
+  padding: 68px 84px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.35),
+    0 12px 56px rgba(0, 0, 0, 0.55);
+  border-radius: 3px;
   outline: none;
-  font-family: Georgia, serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 12pt;
-  line-height: var(--line-spacing, 1.15);
-  position: relative;
+  line-height: 1.15;
+  color: var(--text);
+  caret-color: var(--accent);
 }
 
 /* ---- Paragraph blocks ---- */
 .paragraph {
-  margin-bottom: var(--paragraph-spacing, 8pt);
+  margin-bottom: var(--paragraph-spacing);
   min-height: 1em;
   position: relative;
 }
 
-/* Indent styles */
+/* Indent levels */
 .paragraph.indent-1 { padding-left: 0.5in; }
 .paragraph.indent-2 { padding-left: 1.0in; }
 .paragraph.indent-3 { padding-left: 1.5in; }
 .paragraph.indent-4 { padding-left: 2.0in; }
 .paragraph.indent-5 { padding-left: 2.5in; }
 
-.paragraph.first-line-indent {
-  text-indent: 0.5in;
-}
+.paragraph.first-line-indent { text-indent: 0.5in; }
 
-/* Section headings — no visual change, purely structural/functional */
+/* Section headings — structural only, no visual differentiation */
 .paragraph.section-heading {}
 
-/* Exclude from word count visual */
+/* Exclude-from-word-count indicator */
 .paragraph.exclude-wc {
-  border-left: 3px solid #e0a040;
+  border-left: 2px solid rgba(200, 120, 30, 0.5);
   padding-left: 12px;
 }
 
@@ -235,29 +299,51 @@ html, body {
   content: "WC excluded";
   position: absolute;
   right: 0;
-  top: -2px;
+  top: -1px;
   font-size: 9px;
-  color: #c0a050;
+  color: rgba(200, 140, 60, 0.5);
   pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  letter-spacing: 0.04em;
 }
 
 /* ---- Status bar ---- */
 #status-bar {
+  flex-shrink: 0;
   height: 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  background: #f5f5f5;
-  border-top: 1px solid #ccc;
+  background: var(--chrome);
+  border-top: 1px solid var(--border);
   font-size: 11px;
-  color: #555;
+  color: var(--text-dim);
   user-select: none;
+  letter-spacing: 0.02em;
+}
+
+#status-left {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+#doc-name {
+  color: var(--text);
+  font-weight: 500;
+}
+
+#dirty-indicator {
+  color: var(--dirty-color);
+  font-size: 15px;
+  line-height: 1;
+  margin-left: 1px;
 }
 
 #status-right {
   display: flex;
-  gap: 16px;
+  gap: 20px;
 }
 
 #status-bar.stats-hidden #word-count-display,
@@ -265,10 +351,10 @@ html, body {
   display: none;
 }
 
-/* ---- Scrollbar styling ---- */
+/* ---- Scrollbars ---- */
 #editor-wrapper::-webkit-scrollbar,
 #sidebar-list::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 #editor-wrapper::-webkit-scrollbar-track,
@@ -278,16 +364,16 @@ html, body {
 
 #editor-wrapper::-webkit-scrollbar-thumb,
 #sidebar-list::-webkit-scrollbar-thumb {
-  background: #bbb;
-  border-radius: 4px;
+  background: #2e3040;
+  border-radius: 3px;
 }
 
 #editor-wrapper::-webkit-scrollbar-thumb:hover,
 #sidebar-list::-webkit-scrollbar-thumb:hover {
-  background: #999;
+  background: #3e4058;
 }
 
-/* Selection */
+/* ---- Selection ---- */
 ::selection {
-  background: #b4d5fe;
+  background: rgba(91, 142, 240, 0.28);
 }

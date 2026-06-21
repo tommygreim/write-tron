@@ -9,6 +9,16 @@
 <body>
   <!-- Toolbar -->
   <div id="toolbar">
+
+    <div class="toolbar-group file-ops">
+      <button id="btn-new" class="toolbar-btn" title="New Document (Ctrl+N)">New</button>
+      <button id="btn-open" class="toolbar-btn" title="Open Document (Ctrl+O)">Open</button>
+      <button id="btn-save" class="toolbar-btn" title="Save (Ctrl+S)">Save</button>
+      <button id="btn-save-as" class="toolbar-btn" title="Save As (Ctrl+Shift+S)">Save As</button>
+    </div>
+
+    <div class="toolbar-separator"></div>
+
     <div class="toolbar-group">
       <select id="font-family" title="Font Family">
         <option value="Georgia">Georgia</option>
@@ -123,13 +133,16 @@
 
   <!-- Status bar -->
   <div id="status-bar">
-    <div id="status-left"></div>
+    <div id="status-left">
+      <span id="doc-name">Untitled</span><span id="dirty-indicator"></span>
+    </div>
     <div id="status-right">
       <span id="word-count-display">0 words</span>
       <span id="daily-stats-display">+0 / -0 today</span>
     </div>
   </div>
 
+  <input type="file" id="file-input" accept=".wtron,.json" style="display:none">
   <script src="editor.js"></script>
 </body>
 </html>
